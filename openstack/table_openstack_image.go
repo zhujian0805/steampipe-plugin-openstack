@@ -159,7 +159,7 @@ func tableOpenStackImage(_ context.Context) *plugin.Table {
 			},
 		},
 		Get: &plugin.GetConfig{
-			KeyColumns: plugin.SingleColumn("id"),
+			KeyColumns: plugin.AllColumns([]string{"id", "project_id"}),
 			Hydrate:    getOpenStackImage,
 		},
 	}

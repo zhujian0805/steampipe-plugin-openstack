@@ -9,7 +9,7 @@ import (
 
 func Plugin(ctx context.Context) *plugin.Plugin {
 	p := &plugin.Plugin{
-		Name:             "steampipe-plugin-openstack",
+		Name:             "steampipe-plugin-openstack_legacy",
 		DefaultTransform: transform.FromGo().NullIfZero(),
 		TableMap: map[string]*plugin.Table{
 			"openstack_instance":            tableOpenStackInstance(ctx),
@@ -22,6 +22,14 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"openstack_security_group":      tableOpenStackSecurityGroup(ctx),
 			"openstack_security_group_rule": tableOpenStackSecurityGroupRule(ctx),
 			"openstack_network":             tableOpenStackNetwork(ctx),
+			"openstack_subnet":              tableOpenStackSubnet(ctx),
+			"openstack_hypervisor":          tableOpenStackHypervisor(ctx),
+			"openstack_aggregate":           tableOpenStackAggregate(ctx),
+			"openstack_flavor":              tableOpenStackFlavor(ctx),
+			"openstack_loadbalancer":        tableOpenStackLoadBalancer(ctx),
+			"openstack_listener":            tableOpenStackListener(ctx),
+			"openstack_pool":                tableOpenStackPool(ctx),
+			"openstack_pool_member":         tableOpenStackPoolMember(ctx),
 		},
 		ConnectionConfigSchema: &plugin.ConnectionConfigSchema{
 			NewInstance: ConfigInstance,

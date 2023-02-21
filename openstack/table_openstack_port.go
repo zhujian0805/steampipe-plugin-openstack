@@ -60,6 +60,12 @@ func tableOpenStackPort(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("MACAddress"),
 			},
 			{
+				Name:        "fixed_ips",
+				Type:        proto.ColumnType_JSON,
+				Description: "The IP addresses for the port",
+				Transform:   transform.FromField("FixedIPs"),
+			},
+			{
 				Name:        "project_id",
 				Type:        proto.ColumnType_STRING,
 				Description: "The ID of the project owning this port.",

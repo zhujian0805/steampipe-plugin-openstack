@@ -9,5 +9,5 @@ clean:
 .PHONY: install
 install: plugin
 	@mkdir -p ~/.steampipe/plugins/local/openstack
-	@cp steampipe-plugin-openstack ~/.steampipe/plugins/local/openstack/openstack.plugin
+	@cp steampipe-plugin-openstack ~/.steampipe/plugins/local/openstack/openstack_legacy.plugin
 #	@cp config/openstack.spc ~/.steampipe/config/openstack.spc

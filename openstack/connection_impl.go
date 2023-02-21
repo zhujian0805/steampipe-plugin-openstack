@@ -30,6 +30,8 @@ const (
 	ComputeV2 = "openstack_compute_v2"
 	// NetworkV2 identifies the OpenStack Network V2 service (Neutron).
 	NetworkV2 = "openstack_network_v2"
+
+	LbaasV2 = "lbaas_v2"
 	// BlockStorageV3 identifies the OpenStack Block Storage V3 service (Cinder).
 	BlockStorageV3 = "openstack_blockstorage_v3"
 	// ImageServiceV2 identifies the OpenStack Image Service V2 service (Glance).
@@ -66,6 +68,12 @@ var serviceConfigMap = map[ServiceType]serviceConfig{
 		newClient: openstack.NewNetworkV2,
 		getMicroversion: func(config *openstackConfig) string {
 			// TODO: check if we need to leverage/support micro-versions
+			return ""
+		},
+	},
+	LbaasV2: {
+		newClient: openstack.NewLoadBalancerV2,
+		getMicroversion: func(config *openstackConfig) string {
 			return ""
 		},
 	},

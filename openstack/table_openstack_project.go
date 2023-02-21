@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/dihedron/steampipe-plugin-utils/utils"
+	"github.com/gophercloud/gophercloud"
 	"github.com/gophercloud/gophercloud/openstack/identity/v3/projects"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -151,6 +152,15 @@ func getOpenStackProject(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	var project *projects.Project
 	project, err = result.Extract()
 	if err != nil {
+
+		_, ok1 := err.(gophercloud.ErrDefault404)
+		_, ok2 := err.(gophercloud.ErrResourceNotFound)
+
+		if ok1 || ok2 {
+			plugin.Logger(ctx).Error("No Resource Found", "error", err)
+			return nil, nil
+		}
+
 		plugin.Logger(ctx).Error("error retrieving project", "error", err)
 		return nil, err
 	}

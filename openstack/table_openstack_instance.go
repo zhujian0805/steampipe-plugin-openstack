@@ -81,28 +81,7 @@ func tableOpenStackInstance(_ context.Context) *plugin.Table {
 				Name:        "addresses",
 				Type:        proto.ColumnType_JSON,
 				Description: "The IP address of the Instance",
-				Transform: transform.FromField("Addresses").Transform(func(ctx context.Context, d *transform.TransformData) (any, error) {
-					var results []map[string]string
-					if value, ok := d.Value.(map[string][]struct {
-						MACAddress string `json:"OS-EXT-IPS-MAC:mac_addr"`
-						IPType     string `json:"OS-EXT-IPS:type"`
-						IPAddress  string `json:"addr"`
-						IPVersion  int    `json:"version"`
-					}); ok {
-						results = make([]map[string]string, 0, len(value)*2)
-						for k, v := range value {
-							ip := make(map[string]string, len(v))
-							for _, a := range v {
-								ip["Network"] = k
-								ip["IPAddress"] = a.IPAddress
-								ip["MACAddress"] = a.MACAddress
-								results = append(results, ip)
-							}
-						}
-						return results, nil
-					}
-					return results, nil
-				}),
+				Transform:   transform.FromField("Addresses").Transform(getVmIpAddresses),
 			},
 			{
 				Name:        "host_name",
@@ -229,6 +208,12 @@ func tableOpenStackInstance(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("Flavor.OriginalName"),
 			},
 			{
+				Name:        "flavor_id",
+				Type:        proto.ColumnType_STRING,
+				Description: "The flavor ID of the flavor used to start the instance.",
+				Transform:   transform.FromField("Flavor.ID"),
+			},
+			{
 				Name:        "flavor_vcpus",
 				Type:        proto.ColumnType_INT,
 				Description: "The number of virtual CPUs in the flavor used to start the instance.",
@@ -257,6 +242,12 @@ func tableOpenStackInstance(_ context.Context) *plugin.Table {
 				Type:        proto.ColumnType_INT,
 				Description: "The amount of RAM in the flavor used to start the instance.",
 				Transform:   transform.FromField("Flavor.RAM"),
+			},
+			{
+				Name:        "security_groups",
+				Type:        proto.ColumnType_JSON,
+				Description: "The security groups that this instance has applied",
+				Transform:   transform.FromField("SecurityGroups"),
 			},
 			{
 				Name:        "flavor_disk",
@@ -503,8 +494,9 @@ type apiInstance struct {
 	AccessIPv6   string `json:"accessIPv6"`
 	Image        any    `json:"image"`
 	Flavor       struct {
-		Disk       int `json:"disk"`
-		Ephemeral  int `json:"ephemeral"`
+		ID         string `json:"id"`
+		Disk       int    `json:"disk"`
+		Ephemeral  int    `json:"ephemeral"`
 		ExtraSpecs struct {
 			CPUCores        string `json:"hw:cpu_cores"`
 			CPUSockets      string `json:"hw:cpu_sockets"`
@@ -555,4 +547,30 @@ type apiInstance struct {
 	ConfigDrive        string    `json:"config_drive"`
 	Description        string    `json:"description"`
 	//	TaskState          interface{}              `json:"OS-EXT-STS:task_state"`
+}
+
+//// UTILITY FUNCTIONS
+
+// Get Instance IP addresses
+func getVmIpAddresses(ctx context.Context, d *transform.TransformData) (any, error) {
+	var results []map[string]string
+	if value, ok := d.Value.(map[string][]struct {
+		MACAddress string `json:"OS-EXT-IPS-MAC:mac_addr"`
+		IPType     string `json:"OS-EXT-IPS:type"`
+		IPAddress  string `json:"addr"`
+		IPVersion  int    `json:"version"`
+	}); ok {
+		results = make([]map[string]string, 0, len(value))
+		for k, v := range value {
+			ip := make(map[string]string, len(v))
+			for _, a := range v {
+				ip["Network"] = k
+				ip["IPAddress"] = a.IPAddress
+				ip["MACAddress"] = a.MACAddress
+				results = append(results, ip)
+			}
+		}
+		return results, nil
+	}
+	return results, nil
 }

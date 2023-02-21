@@ -151,7 +151,7 @@ func tableOpenStackNetwork(_ context.Context) *plugin.Table {
 			},
 			{
 				Name:        "subnets",
-				Type:        proto.ColumnType_STRING,
+				Type:        proto.ColumnType_JSON,
 				Description: "The associated subnets.",
 				Transform:   transform.FromField("Subnets").Transform(transform.EnsureStringArray),
 			},

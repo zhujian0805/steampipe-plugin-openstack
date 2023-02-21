@@ -169,14 +169,7 @@ func tableOpenStackVolume(_ context.Context) *plugin.Table {
 				Name:        "image_size",
 				Type:        proto.ColumnType_INT,
 				Description: "The size of the image from which this volume was created, if any.",
-				Transform: transform.FromField("VolumeImageMetadata").Transform(transform.NullIfZeroValue).Transform(func(ctx context.Context, d *transform.TransformData) (any, error) {
-					if d.Value != nil {
-						if value, ok := d.Value.(map[string]string); ok {
-							return value["size"], nil
-						}
-					}
-					return nil, nil
-				}),
+				Transform:   transform.FromField("size").Transform(transform.NullIfZeroValue).Transform(transform.ToInt),
 			},
 			{
 				Name:        "image_architecture",
@@ -398,6 +391,7 @@ func listOpenStackVolume(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	plugin.Logger(ctx).Debug("volumes retrieved", "count", len(allVolumes))
 
 	for _, volume := range allVolumes {
+		plugin.Logger(ctx).Error("Individual Volume", "--->", utils.ToPrettyJSON(volume))
 		if ctx.Err() != nil {
 			plugin.Logger(ctx).Debug("context done, exit")
 			break
