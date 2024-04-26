@@ -123,8 +123,8 @@ func listOpenStackPoolMember(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, err
 	}
 
-	// opts := buildOpenStackPoolMemberFilter(ctx, d.EqualsQuals)
-	opts := pools.ListMembersOpts{}
+	opts := buildOpenStackPoolMemberFilter(ctx, d.EqualsQuals)
+	// opts := pools.ListMembersOpts{}
 
 	allPages, err := pools.ListMembers(client, pool_id, opts).AllPages()
 
