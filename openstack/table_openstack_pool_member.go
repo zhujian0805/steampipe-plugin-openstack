@@ -142,14 +142,14 @@ func listOpenStackPoolMember(ctx context.Context, d *plugin.QueryData, h *plugin
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Debug("allPools", "---->", utils.ToPrettyJSON(allmembers)
+	plugin.Logger(ctx).Debug("allPools", "---->", utils.ToPrettyJSON(allmembers))
 
 	for _, member := range allmembers {
 		if ctx.Err() != nil {
 			plugin.Logger(ctx).Debug("context done, exit")
 			break
 		}
-		pool.PoolID = pool_id
+		member.PoolID = pool_id
 		plugin.Logger(ctx).Debug("pool", "---->", utils.ToPrettyJSON(member))
 		d.StreamListItem(ctx, member)
 	}
