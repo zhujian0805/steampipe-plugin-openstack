@@ -42,6 +42,12 @@ func tableOpenStackListener(_ context.Context) *plugin.Table {
 				Transform:   transform.FromField("ProjectID"),
 			},
 			{
+				Name:        "protocol_port",
+				Type:        proto.ColumnType_STRING,
+				Description: "The protocol port of a listener",
+				Transform:   transform.FromField("ProtocolPort"),
+			},
+			{
 				Name:        "protocol",
 				Type:        proto.ColumnType_STRING,
 				Description: "The protocol to loadbalance. A valid value is TCP, SCTP, HTTP, HTTPS or TERMINATED_HTTPS.",
