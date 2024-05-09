@@ -11,6 +11,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 	p := &plugin.Plugin{
 		Name:             "steampipe-plugin-openstack_legacy",
 		DefaultTransform: transform.FromGo().NullIfZero(),
+		DefaultIgnoreConfig: &plugin.IgnoreConfig{
+			ShouldIgnoreErrorFunc: shouldIgnoreErrors([]string{"404", "ErrDefault404", "itemNotFound"}),
+		},
 		TableMap: map[string]*plugin.Table{
 			"openstack_instance":            tableOpenStackInstance(ctx),
 			"openstack_project":             tableOpenStackProject(ctx),

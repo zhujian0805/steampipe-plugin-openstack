@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/dihedron/steampipe-plugin-utils/utils"
-	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/security/groups"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/security/rules"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -206,7 +205,7 @@ func getOpenStackSecurityGroupRule(ctx context.Context, d *plugin.QueryData, h *
 	setLogLevel(ctx, d)
 
 	id := d.EqualsQuals["id"].GetStringValue()
-	plugin.Logger(ctx).Debug("retrieving openstack security group", "id", id)
+	plugin.Logger(ctx).Debug("retrieving openstack security group rule", "id", id)
 
 	client, err := getServiceClient(ctx, d, NetworkV2)
 	if err != nil {
@@ -214,15 +213,14 @@ func getOpenStackSecurityGroupRule(ctx context.Context, d *plugin.QueryData, h *
 		return nil, err
 	}
 
-	result := groups.Get(client, id)
-	var group *groups.SecGroup
-	group, err = result.Extract()
+	result := rules.Get(client, id)
+	rule, err := result.Extract()
 	if err != nil {
-		plugin.Logger(ctx).Error("error retrieving security group", "error", err)
+		plugin.Logger(ctx).Error("error retrieving security group rule", "error", err)
 		return nil, err
 	}
 
-	return group, nil
+	return rule, nil
 }
 
 func buildOpenStackSecurityGroupRuleFilter(ctx context.Context, quals plugin.KeyColumnEqualsQualMap) rules.ListOpts {
