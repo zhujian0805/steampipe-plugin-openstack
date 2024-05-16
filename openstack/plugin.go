@@ -24,6 +24,7 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"openstack_image":               tableOpenStackImage(ctx),
 			"openstack_security_group":      tableOpenStackSecurityGroup(ctx),
 			"openstack_security_group_rule": tableOpenStackSecurityGroupRule(ctx),
+			"security_group_rule":           tableSecurityGroupRule(ctx),
 			"openstack_network":             tableOpenStackNetwork(ctx),
 			"openstack_subnet":              tableOpenStackSubnet(ctx),
 			"openstack_hypervisor":          tableOpenStackHypervisor(ctx),

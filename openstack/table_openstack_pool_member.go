@@ -97,10 +97,6 @@ func tableOpenStackPoolMember(_ context.Context) *plugin.Table {
 					Name:    "pool_id",
 					Require: plugin.Optional,
 				},
-				&plugin.KeyColumn{
-					Name:    "id",
-					Require: plugin.Optional,
-				},
 			},
 		},
 	}
@@ -112,46 +108,66 @@ func listOpenStackPoolMember(ctx context.Context, d *plugin.QueryData, h *plugin
 
 	plugin.Logger(ctx).Debug("returning", "filter", utils.ToPrettyJSON(d))
 
+	client, err := getServiceClient(ctx, d, LbaasV2)
+
+	// First get a list of pools
+	opts := buildOpenStackpoolFilter(ctx, d.EqualsQuals)
+	allPages, err := pools.List(client, opts).AllPages()
+	if err != nil {
+		plugin.Logger(ctx).Error("error listing pool with options", "options", utils.ToPrettyJSON(opts), "error", err)
+		return nil, err
+	}
+	allpools, err := pools.ExtractPools(allPages)
 	pool_id := d.EqualsQuals["pool_id"].GetStringValue()
 
-	plugin.Logger(ctx).Debug("retrieving openstack pool member", "pool id", pool_id)
+	if pool_id != "" {
+		filteredPools := make([]pools.Pool, 0)
+		for _, pool := range allpools {
+			if pool.ID == pool_id {
+				filteredPools = append(filteredPools, pool)
+			}
+		}
+		allpools = filteredPools
+	}
 
-	client, err := getServiceClient(ctx, d, LbaasV2)
+	plugin.Logger(ctx).Debug("retrieving openstack pool member", "pool id", pool_id)
 
 	if err != nil {
 		plugin.Logger(ctx).Error("error retrieving client", "error", err)
 		return nil, err
 	}
 
-	opts := buildOpenStackPoolMemberFilter(ctx, d.EqualsQuals)
-	// opts := pools.ListMembersOpts{}
+	for _, pool := range allpools {
+		opts := buildOpenStackPoolMemberFilter(ctx, d.EqualsQuals)
+		// opts := pools.ListMembersOpts{}
 
-	allPages, err := pools.ListMembers(client, pool_id, opts).AllPages()
+		allPages, err := pools.ListMembers(client, pool.ID, opts).AllPages()
 
-	plugin.Logger(ctx).Debug("allPages", "---->", utils.ToPrettyJSON(allPages))
+		plugin.Logger(ctx).Debug("allPages", "---->", utils.ToPrettyJSON(allPages))
 
-	if err != nil {
-		plugin.Logger(ctx).Error("error listing pool with options", "options", utils.ToPrettyJSON(opts), "error", err)
-		return nil, err
-	}
-
-	allmembers, err := pools.ExtractMembers(allPages)
-
-	if err != nil {
-		plugin.Logger(ctx).Error("error extracting networks", "error", err)
-		return nil, err
-	}
-
-	plugin.Logger(ctx).Debug("allPools", "---->", utils.ToPrettyJSON(allmembers))
-
-	for _, member := range allmembers {
-		if ctx.Err() != nil {
-			plugin.Logger(ctx).Debug("context done, exit")
-			break
+		if err != nil {
+			plugin.Logger(ctx).Error("error listing pool with options", "options", utils.ToPrettyJSON(opts), "error", err)
+			return nil, err
 		}
-		member.PoolID = pool_id
-		plugin.Logger(ctx).Debug("pool", "---->", utils.ToPrettyJSON(member))
-		d.StreamListItem(ctx, member)
+
+		allmembers, err := pools.ExtractMembers(allPages)
+
+		if err != nil {
+			plugin.Logger(ctx).Error("error extracting networks", "error", err)
+			return nil, err
+		}
+
+		plugin.Logger(ctx).Debug("allPools", "---->", utils.ToPrettyJSON(allmembers))
+
+		for _, member := range allmembers {
+			if ctx.Err() != nil {
+				plugin.Logger(ctx).Debug("context done, exit")
+				break
+			}
+			member.PoolID = pool.ID
+			plugin.Logger(ctx).Debug("pool", "---->", utils.ToPrettyJSON(member))
+			d.StreamListItem(ctx, member)
+		}
 	}
 
 	return nil, nil
@@ -173,20 +189,6 @@ func buildOpenStackPoolFilter(ctx context.Context, quals plugin.KeyColumnEqualsQ
 
 func buildOpenStackPoolMemberFilter(ctx context.Context, quals plugin.KeyColumnEqualsQualMap) ListPoolMembersOpts {
 	opts := ListPoolMembersOpts{}
-
-	if value, ok := quals["id"]; ok {
-		opts.ID = value.GetStringValue()
-	}
-	if value, ok := quals["name"]; ok {
-		opts.Name = value.GetStringValue()
-	}
-	if value, ok := quals["project_id"]; ok {
-		opts.ProjectID = value.GetStringValue()
-	}
-	if value, ok := quals["pool_id"]; ok {
-		opts.PoolID = value.GetStringValue()
-	}
-	plugin.Logger(ctx).Debug("returning", "filter", utils.ToPrettyJSON(opts))
 	return opts
 }
 
