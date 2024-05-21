@@ -66,6 +66,18 @@ func tableOpenStackSubnet(_ context.Context) *plugin.Table {
 				Description: "The gateway of the subnet",
 				Transform:   transform.FromField("GatewayIP"),
 			},
+			{
+				Name:        "dns_nameservers",
+				Type:        proto.ColumnType_JSON,
+				Description: "DNS name servers used by hosts in this subnet.",
+				Transform:   transform.FromField("DNSNameservers"),
+			},
+			{
+				Name:        "host_routes",
+				Type:        proto.ColumnType_JSON,
+				Description: "Routes that should be used by devices with IPs from this subnet",
+				Transform:   transform.FromField("HostRoutes"),
+			},
 		},
 		List: &plugin.ListConfig{
 			Hydrate: listOpenStackSubnet,
